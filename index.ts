@@ -4,10 +4,13 @@ require('dotenv').config()
 
 const jwt = require('jsonwebtoken')
 const app = express()
-const port = 3000
+const port = process.env.PORT
 const cors = require('cors')
+const cookieParser = require("cookie-parser")
+
 app.use(cors())
 app.use(express.json())
+app.use(cookieParser())
 
 const uri: string = process.env.MONGODB as string;
 
@@ -69,12 +72,13 @@ app.post('/login', async (req, res) => {
     if (person?.name === username) {
       if (person?.password === password) {
         const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '1h' });
-        res.json({token: token, username: person.name})
+        res.cookie('jwt', token, { httpOnly: true, sameSite: 'none' })
+        res.json({ token: token, username: person.name })
       } else {
-        res.json({status: "Incorrect password"})
+        res.status(403).json({status: "Incorrect password"})
       }
     } else {
-      res.json({status: "Incorrect username"})
+      res.status(403).json({status: "Incorrect username"})
     }
   } catch (e) {
     console.log(e)
@@ -125,8 +129,6 @@ app.post('/updateHighscore', async (req, res) => {
     console.error(e)
   }
 })
-
-
 
 app.listen(process.env.PORT || port, () => {
     console.log(`Listening on port ${port}`)
