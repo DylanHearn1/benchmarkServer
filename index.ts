@@ -71,7 +71,7 @@ app.post('/login', async (req, res) => {
   
     if (person?.name === username) {
       if (person?.password === password) {
-        const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '1h' });
+        const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '10s' });
         res.cookie('jwt', token, { httpOnly: true, sameSite: 'none' })
         res.json({ token: token, username: person.name })
       } else {
@@ -128,6 +128,20 @@ app.post('/updateHighscore', async (req, res) => {
   } catch (e) {
     console.error(e)
   }
+})
+
+app.post('/checkToken', (req, res) => {
+  const { token } = req.body as { token: string }
+
+  jwt.verify(token, 'secret_key', (err: any, decoded: any) => {
+    if (err) {
+      res.status(203).json({error: "token expired"})
+    } else {
+      console.log('Decoded token:', decoded);
+      res.json(decoded)
+    }
+  });
+  
 })
 
 app.listen(process.env.PORT || port, () => {
