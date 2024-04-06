@@ -34,8 +34,10 @@ app.post('/register', async (req, res) => {
   try {
     await mongoose.connect(uri)
     const { username, password } = req.body as { username: string, password: string }
-  
-    const usernameQuery = { name: username }
+
+    const normalUsername = username.toLowerCase()
+    const normalPassword = password.toLowerCase()
+    const usernameQuery = { name: normalUsername }
   
     let person: User | null = await user.findOne(usernameQuery)
   
@@ -43,8 +45,8 @@ app.post('/register', async (req, res) => {
       res.json({status: "Username taken"})
     } else {
       const newUser = new user({
-        name: username,
-        password: password
+        name: normalUsername,
+        password: normalPassword
       })
       await newUser.save();
   
@@ -63,22 +65,25 @@ app.post('/login', async (req, res) => {
   try {
     await mongoose.connect(uri)
 
-    const {username, password} = req.body as { username: string, password: string}
+    const { username, password } = req.body as { username: string, password: string }
+    
+    const normalUsername = username.toLowerCase()
+    const normalPassword = password.toLowerCase()
   
-    const usernameQuery = {name: username}
+    const usernameQuery = {name: normalUsername}
   
     let person: User | null = await user.findOne(usernameQuery)
   
-    if (person?.name === username) {
-      if (person?.password === password) {
+    if (person?.name === normalUsername) {
+      if (person?.password === normalPassword) {
         const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '10h' });
         res.cookie('jwt', token, { httpOnly: true, sameSite: 'none' })
         res.json({ token: token, username: person.name })
       } else {
-        res.status(403).json({status: "Incorrect password"})
+        res.status(203).json({status: "Incorrect password"})
       }
     } else {
-      res.status(403).json({status: "Incorrect username"})
+      res.status(203).json({status: "Incorrect username"})
     }
   } catch (e) {
     console.log(e)
