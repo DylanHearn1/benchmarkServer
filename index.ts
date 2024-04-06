@@ -71,7 +71,7 @@ app.post('/login', async (req, res) => {
   
     if (person?.name === username) {
       if (person?.password === password) {
-        const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '10s' });
+        const token = jwt.sign({ username: person?.name }, 'secret_key', { expiresIn: '10h' });
         res.cookie('jwt', token, { httpOnly: true, sameSite: 'none' })
         res.json({ token: token, username: person.name })
       } else {
