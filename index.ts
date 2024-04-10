@@ -50,7 +50,7 @@ app.post('/register', async (req, res) => {
       })
       await newUser.save();
   
-      res.json({status: "Account created"})
+      res.json({status: "Account created, redirecting...", username: username})
     }
   } catch (e) {
     console.log(e)
