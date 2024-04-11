@@ -118,18 +118,28 @@ app.post('/userscore', async (req, res) => {
 app.post('/updateHighscore', async (req, res) => {
   try {
     await mongoose.connect(uri)
-    const { username, gameName, score } = req.body as { username: string, gameName: string, score: number }
-    const usernameQuery = {name: username}
-    let person = await user.findOne(usernameQuery)
 
-    if (!person) {
-      res.status(404).json({status: "user not found"})
-    } else {
-      (person as any)[gameName] = score
-      await person.save()
-      res.json({ [gameName]: (person as any)[gameName]})
-    }
+    const { token, gameName, score } = req.body as { token: string, gameName: string, score: number }
 
+    jwt.verify(token, 'secret_key', async (err: any, decoded: any) => {
+      if (err) {
+        res.status(203).json({error: "token expired"})
+      } else {
+        console.log('Decoded token:', decoded);
+
+        const usernameQuery = { name: decoded.username }
+        console.log(decoded.username)
+        let person = await user.findOne(usernameQuery)
+
+        if (!person) {
+          res.status(404).json({status: "user not found"})
+        } else {
+          (person as any)[gameName] = score
+          await person.save()
+          res.json({ [gameName]: (person as any)[gameName]})
+        }
+      }
+    });
   } catch (e) {
     console.error(e)
   }
