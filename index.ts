@@ -17,7 +17,8 @@ const uri: string = process.env.MONGODB as string;
 const UserSchema = new mongoose.Schema({
     name: String,
     password: String,
-    patternMemory: Number
+  patternMemory: Number,
+  verbalMemory: Number
 })
 const user = mongoose.model("user", UserSchema)
 
@@ -27,6 +28,7 @@ interface User {
   password: string,
   id: string
   patternMemory: number
+  verbalMemory: number
 }
 
 app.post('/register', async (req, res) => {
@@ -120,23 +122,29 @@ app.post('/updateHighscore', async (req, res) => {
     await mongoose.connect(uri)
 
     const { token, gameName, score } = req.body as { token: string, gameName: string, score: number }
+    console.log({"token": token, "gameName": gameName, "score": score})
 
     jwt.verify(token, 'secret_key', async (err: any, decoded: any) => {
       if (err) {
         res.status(203).json({error: "token expired"})
       } else {
-        console.log('Decoded token:', decoded);
 
         const usernameQuery = { name: decoded.username }
-        console.log(decoded.username)
         let person = await user.findOne(usernameQuery)
 
         if (!person) {
-          res.status(404).json({status: "user not found"})
+          res.status(404).json({ status: "user not found" })
         } else {
           (person as any)[gameName] = score
-          await person.save()
+           await person.save()
           res.json({ [gameName]: (person as any)[gameName]})
+
+          const update = {
+            $set: {
+              [gameName]: score
+            }
+          }
+          await user.updateOne(usernameQuery, update, {upsert: true})
         }
       }
     });
@@ -152,7 +160,6 @@ app.post('/checkToken', (req, res) => {
     if (err) {
       res.status(203).json({error: "token expired"})
     } else {
-      console.log('Decoded token:', decoded);
       res.json(decoded)
     }
   });
