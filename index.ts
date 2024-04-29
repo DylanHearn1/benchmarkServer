@@ -18,7 +18,8 @@ const UserSchema = new mongoose.Schema({
     name: String,
     password: String,
   patternMemory: Number,
-  verbalMemory: Number
+  verbalMemory: Number,
+  chimpGame: Number
 })
 const user = mongoose.model("user", UserSchema)
 
@@ -29,6 +30,7 @@ interface User {
   id: string
   patternMemory: number
   verbalMemory: number
+  chimpGame: Number
 }
 
 app.post('/register', async (req, res) => {
